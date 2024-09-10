@@ -7,6 +7,34 @@ from tqdm.auto import tqdm
 from typing import Dict, List, Tuple
 import mlflow
 
+import numpy as np
+
+class EarlyStopping:
+    def __init__(self, patience=5, verbose=False, delta=0):
+        self.patience = patience
+        self.verbose = verbose
+        self.delta = delta
+        self.best_score = None
+        self.early_stop = False
+        self.counter = 0
+
+    def __call__(self, val_loss, model):
+        if self.best_score is None:
+            self.best_score = val_loss
+            self.save_checkpoint(val_loss, model)
+        elif val_loss < self.best_score - self.delta:
+            self.best_score = val_loss
+            self.save_checkpoint(val_loss, model)
+            self.counter = 0
+        else:
+            self.counter += 1
+            if self.counter >= self.patience:
+                self.early_stop = True
+
+    def save_checkpoint(self, val_loss, model):
+        if self.verbose:
+            print(f'Validation loss decreased ({self.best_score:.6f} --> {val_loss:.6f}). Saving model...')
+
 def train_step(model: torch.nn.Module, 
                dataloader: torch.utils.data.DataLoader, 
                loss_fn: torch.nn.Module, 
@@ -97,6 +125,8 @@ def test_step(model: torch.nn.Module,
 
     # Setup test loss and test accuracy values
     test_loss, test_acc = 0, 0
+    global val_loss
+    val_loss=0.0
 
     # Turn on inference context manager
     with torch.inference_mode():
@@ -111,6 +141,7 @@ def test_step(model: torch.nn.Module,
             # 2. Calculate and accumulate loss
             loss = loss_fn(test_pred_logits, y)
             test_loss += loss.item()
+            val_loss += loss.item() * X.size(0)
 
             # Calculate and accumulate accuracy
             test_pred_labels = test_pred_logits.argmax(dim=1)
@@ -119,6 +150,7 @@ def test_step(model: torch.nn.Module,
     # Adjust metrics to get average loss and accuracy per batch 
     test_loss = test_loss / len(dataloader)
     test_acc = test_acc / len(dataloader)
+    val_loss = val_loss / len(dataloader)
     return test_loss, test_acc
 
 def train(model: torch.nn.Module, 
@@ -166,11 +198,15 @@ def train(model: torch.nn.Module,
                "test_loss": [],
                "test_acc": []
     }
+    experiments=[]
     
     
     # Make sure model on target device
     model.to(device)
     print("hi")
+    counter=0
+    #open('results.txt', 'w').close()
+    early_stopping = EarlyStopping(patience=5, verbose=True)
 
     # Loop through training and testing steps for a number of epochs
     for epoch in tqdm(range(epochs)):
@@ -183,6 +219,10 @@ def train(model: torch.nn.Module,
           dataloader=test_dataloader,
           loss_fn=loss_fn,
           device=device)
+        early_stopping(val_loss, model)
+        if early_stopping.early_stop:
+          print("Early stopping triggered")
+          break
 
         # Print out what's happening
         print(
@@ -199,8 +239,24 @@ def train(model: torch.nn.Module,
         results["train_acc"].append(train_acc)
         results["test_loss"].append(test_loss)
         results["test_acc"].append(test_acc)
+        experiments.append(set(model.name))
         
+        
+        
+        with open('results.txt', 'a') as f:
+          if(counter==0):
+            f.write(f'Model Architecture: {model.name}\n')
+          f.write(f'Epoch: {epoch+1}, Test Accuracy: {test_acc*100}%\n')
+            # Separator line
+          counter+=1
+          print(epochs)
+          if(epoch==epochs-1):
+            f.write('-' * 30 + '\n') 
+            counter=0
 
+        
+        
+        
     # Return the filled results at the end of the epochs
     print(results)
     return results

@@ -171,7 +171,8 @@ def plot_loss_curves(results):
     plt.title("Accuracy")
     plt.xlabel("Epochs")
     plt.legend()
-    plt.show()
+    plt.savefig('resnet50_7_epochs_without_aug.png', format='png', dpi=300)
+    #plt.show()
 
 
 # Pred and plot image function from notebook 04

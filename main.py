@@ -10,6 +10,7 @@ import engine
 import mlflow
 import mlflow.pytorch
 from torchmetrics import Accuracy
+from main2 import *
 
 
 from tqdm.auto import tqdm
@@ -18,9 +19,6 @@ if(torch.cuda.is_available):
     device='cuda'
 else:
     device='cpu'
-
-
-torch.manual_seed(42)
 
 
 
@@ -38,7 +36,8 @@ normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], # values per colour
 
 # Create a transform pipeline
 simple_transform = transforms.Compose([
-                                       transforms.Resize((224, 224)),
+                                       transforms.RandomResizedCrop(260),        # Randomly crop the image and resize to 260x260
+                                        transforms.RandomHorizontalFlip(),
                                        transforms.ToTensor(), # get image values between 0 & 1
                                        normalize
 ])
@@ -56,15 +55,6 @@ train_dataloader_20_percent, test_dataloader, class_names = data_setup.create_da
 def set_seeds(seed=42):
     torch.manual_seed(42)
     torch.cuda.manual_seed(42)
-    
-    
-    
-    
-    
-    
-    
-    
-
 
 '''
 import torchvision.models as models
@@ -108,37 +98,57 @@ def create_effnetb2(out_features=len(class_names)):
     return model
 model=create_effnetb2(3)
 
+def create_resNet50(out_features=3):
+    weights = torchvision.models.ResNet50_Weights.DEFAULT
+    model = torchvision.models.resnet50(weights=weights).to(device)
+    
+    dropout=0.3
+    in_features=model.fc.in_features
+    for param in model.parameters():
+        param.requires_grad = False
+    
+    # Set the seeds
+    # Update the classifier head
+    model.fc = nn.Sequential(
+        nn.Dropout(p=dropout, inplace=True),
+        nn.Linear(in_features=in_features, 
+                  out_features=out_features)
+    ).to(device) 
+
+    # Set the model name
+    model.name = "resnet50"
+    #print(f"[INFO] Creating {model.name} feature extractor model...")
+    return model
+
+
+model_2=create_resNet50(3)
+
+model_3=VGG16(3)
+
+model_4=TinyVGG(3)
+model_4.name="tinyvgg"
+model_3.name="vgg16"
+
+
 
 
 loss_fn = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(params=model.parameters(), lr=0.001)
+optimizer =torch.optim.Adam(filter(lambda p: p.requires_grad, model_2.parameters()), lr=0.001)
+#optimizer=torch.optim.Adam(model_4.parameters(),lr=0.001)
 #metric_fn = Accuracy(task="multiclass", num_classes=3).to(device)
 from helper_functions import *
 
 from utils import *
 
 if __name__ == "__main__":
-    #mlflow.set_tracking_uri("http://127.0.0.1:5000")
-    #mlflow.set_experiment("check-localhost-connection")
-    
-    
-    epochs=2
-    learning_rate=1e-3
-    batch_size=32
+    set_seeds()
 
-        # Log training parameters.
-    #mlflow.log_metrics(params)
-    print("yo")
     #mlflow.log_param("alpha", 1.0)
-    print("yo2")
-    '''
-    with open("model_summary.txt", "w",encoding="utf-8") as f:
-        f.write(str(summary(model)))
-    mlflow.log_artifact("model_summary.txt")
-    '''
+ 
     
-    x=engine.train(model=model,train_dataloader=train_dataloader_20_percent,test_dataloader=test_dataloader,optimizer=optimizer,loss_fn=loss_fn,epochs=1,device=device)
+    x=engine.train(model=model_2,train_dataloader=train_dataloader_20_percent,test_dataloader=test_dataloader,optimizer=optimizer,loss_fn=loss_fn,epochs=7,device=device)
     fig1=plot_loss_curves(x)
+        
         #fig2=plot_accuracy_curves(x)
         #mlflow.log_figure()
         #mlflow.log_figure(fig2,"accuracy curves")
@@ -148,12 +158,12 @@ if __name__ == "__main__":
         
 
         #plot_loss_curves(x)
-    '''
-        save_filepath = f"{model.name}_data_20_percent_without_aug 7_epochs.pth"
-        save_model(model=model,
-        target_dir="models",
-        model_name=save_filepath)
-    '''
+    
+    save_filepath = f"{model_2.name}_data_20_percent_without_aug_7_epochs.pth"
+    save_model(model=model,
+    target_dir="models",
+    model_name=save_filepath)
+    
         #mlflow.log_artifact("/tmp/corr_plot.png")
     
     
