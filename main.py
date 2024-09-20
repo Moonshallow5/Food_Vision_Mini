@@ -7,18 +7,16 @@ from pathlib import Path
 import requests
 import data_setup
 import engine
-import mlflow
-import mlflow.pytorch
+
+
 from torchmetrics import Accuracy
-from main2 import *
+from model-architecture import *
 
 
 from tqdm.auto import tqdm
-mlflow.autolog()
-if(torch.cuda.is_available):
-    device='cuda'
-else:
-    device='cpu'
+
+
+device='cpu'
 
 
 
@@ -56,25 +54,7 @@ def set_seeds(seed=42):
     torch.manual_seed(42)
     torch.cuda.manual_seed(42)
 
-'''
-import torchvision.models as models
-effnetb2_weights=models.EfficientNet_B2_Weights.DEFAULT
-effnetb2=models.efficientnet_b2(weights=effnetb2_weights)
-'''
-from torchinfo import summary
-'''
 
-#effnetv2_s = create_model(model_name="effnetv2_s")
-
-
-summary(model=effnetb2,
-        input_size=(1, 3, 224, 224),
-        col_names=["input_size", "output_size", "num_params", "trainable"],
-        col_width=20,
-        row_settings=["var_names"])
-num_epochs = [5, 10]
-print(summary)
-'''
 def create_effnetb2(out_features=len(class_names)):
     weights = torchvision.models.EfficientNet_B2_Weights.DEFAULT
     model = torchvision.models.efficientnet_b2(weights=weights).to(device)
@@ -94,9 +74,8 @@ def create_effnetb2(out_features=len(class_names)):
 
     # Set the model name
     model.name = "effnetb2"
-    #print(f"[INFO] Creating {model.name} feature extractor model...")
     return model
-model=create_effnetb2(3)
+model_1=create_effnetb2(out_features=3)
 
 def create_resNet50(out_features=3):
     weights = torchvision.models.ResNet50_Weights.DEFAULT
@@ -117,7 +96,6 @@ def create_resNet50(out_features=3):
 
     # Set the model name
     model.name = "resnet50"
-    #print(f"[INFO] Creating {model.name} feature extractor model...")
     return model
 
 
@@ -128,43 +106,43 @@ model_3=VGG16(3)
 model_4=TinyVGG(3)
 model_4.name="tinyvgg"
 model_3.name="vgg16"
+model_6=Model2BestOnPaper2((3,260,260),3)
+model_6.name="model2Best"
 
 
 
 
 loss_fn = nn.CrossEntropyLoss()
-optimizer =torch.optim.Adam(filter(lambda p: p.requires_grad, model_2.parameters()), lr=0.001)
-#optimizer=torch.optim.Adam(model_4.parameters(),lr=0.001)
-#metric_fn = Accuracy(task="multiclass", num_classes=3).to(device)
+optimizer =torch.optim.Adam(filter(lambda p: p.requires_grad, model_1.parameters()), lr=0.001)
+
 from helper_functions import *
 
 from utils import *
 
+
 if __name__ == "__main__":
+    from torch.utils.mobile_optimizer import optimize_for_mobile
     set_seeds()
 
-    #mlflow.log_param("alpha", 1.0)
+    device='cpu'
+   
  
+    engine.train(model=model_1,train_dataloader=train_dataloader_20_percent,test_dataloader=test_dataloader,optimizer=optimizer,loss_fn=loss_fn,epochs=7,device='cpu')
     
-    x=engine.train(model=model_2,train_dataloader=train_dataloader_20_percent,test_dataloader=test_dataloader,optimizer=optimizer,loss_fn=loss_fn,epochs=7,device=device)
-    fig1=plot_loss_curves(x)
-        
-        #fig2=plot_accuracy_curves(x)
-        #mlflow.log_figure()
-        #mlflow.log_figure(fig2,"accuracy curves")
+    
     '''
-    mlflow.pytorch.log_model(model, "model")
+    My code below to produce a Torchscript model of my best performing PyTorch model, to run on Flutter
     '''
-        
 
-        #plot_loss_curves(x)
+    '''
+    model_1.eval()
     
-    save_filepath = f"{model_2.name}_data_20_percent_without_aug_7_epochs.pth"
-    save_model(model=model,
-    target_dir="models",
-    model_name=save_filepath)
+    traced_model = torch.jit.script(model_1)
+    optimized_traced_model = optimize_for_mobile(traced_model)
+    optimized_traced_model._save_for_lite_interpreter("pre_model_7_script_cpu.pt")
+    '''
     
-        #mlflow.log_artifact("/tmp/corr_plot.png")
+   
     
     
     
