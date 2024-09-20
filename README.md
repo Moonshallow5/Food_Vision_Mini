@@ -24,7 +24,7 @@ I wanted to show my project in live-action so I made a <a href="https://huggingf
 
 ## 🔧Further implementations 
 
-I want to turn this program into a Flutter API for anyone to use it on their mobile phones, but this would take me some time to lern Dart documentations
+[x] I want to turn this program into a Flutter API for anyone to use it on their mobile phones, but this would take me some time to lern Dart documentations
 
 
 
