@@ -15,13 +15,16 @@ Furthermore, I also implemented my own custom implementation in main2.py, where 
 
 Here are <a href="https://github.com/Moonshallow5/Food_Vision_mini/blob/main/effnet_b2_7_epochs_without_aug.png">Effnet_b2</a> and <a href="https://github.com/Moonshallow5/Food_Vision_mini/blob/main/resnet50_7_epochs_without_aug.png">resnet50</a> test results on 7 epochs without any data augmentation 
 
+
+Learn about MLflow as well as Nsight systems to optimize my program and see for any potential bottlenecks as well
+
 ## 👀Live preview
 
 I wanted to show my project in live-action so I made a <a href="https://huggingface.co/spaces/Moonshallow5/FoodVision_mini?logs=container">link</a> to my hugging face account where there is already an app running on gradio for anyone to use.
 
 ## 🔧Further implementations 
 
-I want to turn this program into a Flutter API for anyone to use it on their mobile phones, but this would take me some time to lern Dart documentations
+- [x] I want to turn this program into a Flutter API for anyone to use it on their mobile phones, but this would take me some time to lern Dart documentations
 
 
 
