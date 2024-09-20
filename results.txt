@@ -16,3 +16,12 @@ Epoch: 5, Test Accuracy: 90.73863636363637%
 Epoch: 6, Test Accuracy: 87.32954545454545%
 Epoch: 7, Test Accuracy: 82.67045454545455%
 ------------------------------
+Model Architecture: model2Best
+Epoch: 1, Test Accuracy: 50.0%
+Epoch: 2, Test Accuracy: 52.5%
+Epoch: 3, Test Accuracy: 42.95454545454545%
+Epoch: 4, Test Accuracy: 56.02272727272728%
+Epoch: 5, Test Accuracy: 57.04545454545455%
+Epoch: 6, Test Accuracy: 55.17045454545454%
+Epoch: 7, Test Accuracy: 48.06818181818181%
+------------------------------
