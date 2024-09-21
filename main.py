@@ -10,7 +10,7 @@ import engine
 
 
 from torchmetrics import Accuracy
-from model-architecture import *
+from model_architecture import *
 
 
 from tqdm.auto import tqdm
@@ -45,37 +45,42 @@ BATCH_SIZE=32
 
 
 
-train_dataloader_20_percent, test_dataloader, class_names = data_setup.create_dataloaders(train_dir=train_dir_20_percent,
-                                                                                          test_dir=test_dir,
-                                                                                          transform=simple_transform,
-                                                                                          batch_size=BATCH_SIZE)
 
 def set_seeds(seed=42):
     torch.manual_seed(42)
     torch.cuda.manual_seed(42)
 
 
-def create_effnetb2(out_features=len(class_names)):
+def create_effnetb2(out_features=3):
+    
     weights = torchvision.models.EfficientNet_B2_Weights.DEFAULT
-    model = torchvision.models.efficientnet_b2(weights=weights).to(device)
+    transforms=weights.transforms()
+    model = torchvision.models.efficientnet_b2(weights=weights).to('cpu')
     dropout=0.3
     in_features=1408
-    for param in model.features.parameters():
-      param.requires_grad=False
-    # Set the seeds
-    set_seeds() 
+    #for param in model.features.parameters():
+     # param.requires_grad=False
+    torch.manual_seed(seed=42)
+    
+    
 
     # Update the classifier head
     model.classifier = nn.Sequential(
         nn.Dropout(p=dropout, inplace=True),
         nn.Linear(in_features=in_features, 
                   out_features=out_features)
-    ).to(device) 
+    ).to('cpu') 
 
     # Set the model name
     model.name = "effnetb2"
-    return model
-model_1=create_effnetb2(out_features=3)
+    return model,transforms
+
+model_1,effnetb2_transforms=create_effnetb2(out_features=3)
+
+train_dataloader_20_percent, test_dataloader, class_names = data_setup.create_dataloaders(train_dir=train_dir_20_percent,
+                                                                                          test_dir=test_dir,
+                                                                                          transform=effnetb2_transforms,
+                                                                                          batch_size=BATCH_SIZE)
 
 def create_resNet50(out_features=3):
     weights = torchvision.models.ResNet50_Weights.DEFAULT
@@ -113,7 +118,7 @@ model_6.name="model2Best"
 
 
 loss_fn = nn.CrossEntropyLoss()
-optimizer =torch.optim.Adam(filter(lambda p: p.requires_grad, model_1.parameters()), lr=0.001)
+optimizer =torch.optim.Adam(model_1.parameters(), lr=0.001)
 
 from helper_functions import *
 
@@ -126,12 +131,12 @@ if __name__ == "__main__":
 
     device='cpu'
    
- 
+    '''Code below trains the efficientnet_b2 model with training data'''
     engine.train(model=model_1,train_dataloader=train_dataloader_20_percent,test_dataloader=test_dataloader,optimizer=optimizer,loss_fn=loss_fn,epochs=7,device='cpu')
     
     
     '''
-    My code below to produce a Torchscript model of my best performing PyTorch model, to run on Flutter
+    My code below produces a Torchscript model of my best performing PyTorch model, to run on Flutter
     '''
 
     '''
@@ -139,63 +144,12 @@ if __name__ == "__main__":
     
     traced_model = torch.jit.script(model_1)
     optimized_traced_model = optimize_for_mobile(traced_model)
-    optimized_traced_model._save_for_lite_interpreter("pre_model_7_script_cpu.pt")
+    optimized_traced_model._save_for_lite_interpreter("pre_model_10_script_cpu_transforms_unfreeze.pt")
+    
     '''
     
-   
     
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-'''
-def download_data(source: str, 
-                  destination: str,
-                  remove_source: bool = True) -> Path:
-    # Setup path to data folder
-    data_path = Path("data/")
-    image_path = data_path / destination
-
-    # If the image folder doesn't exist, download it and prepare it... 
-    if image_path.is_dir():
-        print(f"[INFO] {image_path} directory exists, skipping download.")
-    else:
-        print(f"[INFO] Did not find {image_path} directory, creating one...")
-        image_path.mkdir(parents=True, exist_ok=True)
-        
-        # Download pizza, steak, sushi data
-        target_file = Path(source).name
-        with open(data_path / target_file, "wb") as f:
-            request = requests.get(source)
-            print(f"[INFO] Downloading {target_file} from {source}...")
-            f.write(request.content)
-
-        # Unzip pizza, steak, sushi data
-        with zipfile.ZipFile(data_path / target_file, "r") as zip_ref:
-            print(f"[INFO] Unzipping {target_file} data...") 
-            zip_ref.extractall(image_path)
-
-        # Remove .zip file
-        if remove_source:
-            os.remove(data_path / target_file)
-    print(image_path)
-    
-    return image_path
-'''
 
 
 
