@@ -11,7 +11,7 @@ In this program I implemented multiple different models to test which model has 
 
 My test results are shown on <a href="https://github.com/Moonshallow5/Food_Vision_mini/blob/main/results.txt"> results.txt</a>, where I used pre-trained pytorch models of efficinentnetb2 and resnet50 and I froze the base layers for a faster computational time.
 
-Furthermore, I also implemented my own custom implementation in main2.py, where a TinyVGG and VGG16 is implemented, which has much lower test accuracy as it isn't a pre-trained model and i have a small selection of datasets
+Furthermore, I also implemented my own custom implementation in <a href="https://github.com/Moonshallow5/Food_Vision_mini/blob/main/model_architecture.py">model_architecture.py</a>, where a TinyVGG and VGG16 is implemented, which has much lower test accuracy as it isn't a pre-trained model and i have a small selection of datasets
 
 Here are <a href="https://github.com/Moonshallow5/Food_Vision_mini/blob/main/effnet_b2_7_epochs_without_aug.png">Effnet_b2</a> and <a href="https://github.com/Moonshallow5/Food_Vision_mini/blob/main/resnet50_7_epochs_without_aug.png">resnet50</a> test results on 7 epochs without any data augmentation 
 
