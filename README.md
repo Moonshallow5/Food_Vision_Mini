@@ -20,7 +20,7 @@ Learn about MLflow as well as Nsight systems to optimize my program and see for 
 
 ## 👀Live preview
 
-I wanted to show my project in live-action so I made a <a href="https://huggingface.co/spaces/Moonshallow5/FoodVision_mini?logs=container">link</a> to my hugging face account where there is already an app running on gradio for anyone to use.
+I wanted to show my project in live-action so I made a link to my <a href="https://huggingface.co/spaces/Moonshallow5/FoodVision_mini?logs=container">HuggingFace</a> account where there is already an app running on gradio for anyone to use. The model used in HuggingFace and in my <a href="https://github.com/Moonshallow5/Food_Vision_Flutter">Flutter project</a>  are models which were trained in this repo.
 
 ## 🔧Further implementations 
 
