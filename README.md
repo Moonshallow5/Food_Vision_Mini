@@ -9,7 +9,7 @@ I wanted to have a more hands-on experience in machine learning, so I decided to
 
 In this program I implemented multiple different models to test which model has the highest accuracy in classifying if an image contains either a sushi, pizza or steak.
 
-My test results are shown on <a href="https://github.com/Moonshallow5/Food_Vision_mini/blob/main/results.txt"> results.txt</a>, where I used pre-trained pytorch models of efficinentnetb2 and resnet50 and I froze the base layers for a faster computational time.
+My test results are shown on <a href="https://github.com/Moonshallow5/Food_Vision_mini/blob/main/results.txt"> results.txt</a>, where I used pre-trained pytorch models of efficinentnetb2 and resnet50, as well as my own model which has a much lower accuracy.
 
 Furthermore, I also implemented my own custom implementation in <a href="https://github.com/Moonshallow5/Food_Vision_mini/blob/main/model_architecture.py">model_architecture.py</a>, where a TinyVGG and VGG16 is implemented, which has much lower test accuracy as it isn't a pre-trained model and i have a small selection of datasets
 
